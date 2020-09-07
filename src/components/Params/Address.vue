@@ -16,6 +16,8 @@
 <script>
 import { isAddress } from '@ethersproject/address';
 
+const wildcards = ['$ME', '$DAI', '$WETH'];
+
 export default {
   props: ['defaultValue', 'param'],
   data() {
@@ -25,7 +27,9 @@ export default {
   },
   computed: {
     isValid() {
-      return !this.input || isAddress(this.input);
+      return (
+        !this.input || isAddress(this.input) || wildcards.includes(this.input)
+      );
     }
   },
   created() {
