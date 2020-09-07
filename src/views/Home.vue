@@ -22,7 +22,7 @@
           :class="form.contract === i && 'button--active'"
           class="mr-2 mb-2"
         >
-          {{ startCase(c.contractName) }}
+          {{ _startCase(c.contractName) }}
         </UiButton>
       </div>
     </div>
@@ -35,32 +35,39 @@
           :class="form.command === c.name && 'button--active'"
           class="px-4 py-3 border-bottom d-block"
         >
-          {{ startCase(c.name) }}
+          {{ _startCase(c.name) }}
         </a>
       </div>
     </div>
     <div v-if="command" class="d-flex height-full">
-      <form @submit.prevent="handleSubmit" class="col-6 p-4">
-        <h3 v-text="startCase(command.name)" class="mb-3" />
+      <form @submit.prevent="handleSubmit" class="col-6 px-4 py-6">
+        <h3 v-text="_startCase(command.name)" class="mb-3" />
         <div style="max-width: 500px;">
-          <Command :command="command" v-model="form.params" />
+          <Command
+            :command="command"
+            :value="form.params"
+            v-model="form.params"
+            @input="setParams"
+          />
           <UiButton
             :loading="loading"
-            :disabled="!form.address || !addressIsValid"
+            :disabled="
+              !$auth.isAuthenticated || !form.address || !addressIsValid
+            "
             type="submit"
-            class="width-full button--submit mt-2"
+            class="button--submit mt-2"
           >
             Submit
           </UiButton>
         </div>
       </form>
-      <div class="col-6 p-4 bg-gray">
+      <div class="col-6 px-4 py-6 bg-gray">
         <div class="mb-3">
           <h3 class="mb-2" v-text="'Command'" />
           <div v-text="command.name" />
         </div>
         <h3 class="mb-2" v-text="'Params'" />
-        <code><pre v-text="JSON.stringify(form.params, null, 2)"/></code>
+        <code><pre v-text="JSON.stringify(smartParams, null, 2)"/></code>
       </div>
     </div>
   </div>
@@ -71,29 +78,12 @@ import contracts from '@/sign/abi';
 import { Contract } from '@ethersproject/contracts';
 import { Web3Provider } from '@ethersproject/providers';
 import { getAddress, isAddress } from '@ethersproject/address';
-import startCase from 'lodash/startCase';
+import { b64uDec, b64uEnc, clone } from '@/helpers/utils';
 
-const setup = {
-  CRPFactory: {
-    addresses: [
-      {
-        address: '0x17e8705E85aE8E3df7C5E4d3EEd94000FB30C483',
-        name: 'Balancer smart pool factory'
-      }
-    ]
-  },
-  IERC20: {
-    addresses: [
-      {
-        address: '0x1528F3FCc26d13F7079325Fb78D9442607781c8C',
-        name: 'DAI'
-      },
-      {
-        address: '0xd0A1E359811322d97991E03f863a0C30C2cF029C',
-        name: 'WETH'
-      }
-    ]
-  }
+const wildcards = {
+  DAI: '0x1528F3FCc26d13F7079325Fb78D9442607781c8C',
+  WETH: '0xd0A1E359811322d97991E03f863a0C30C2cF029C',
+  CRPFACTORY: '0x17e8705E85aE8E3df7C5E4d3EEd94000FB30C483'
 };
 
 export default {
@@ -104,10 +94,11 @@ export default {
         address: this.$route.query.address,
         contract: this.$route.query.contract,
         command: this.$route.query.command,
-        params: []
+        params: this.$route.query.params
+          ? JSON.parse(b64uDec(this.$route.query.params))
+          : []
       },
-      contracts,
-      setup
+      contracts
     };
   },
   computed: {
@@ -129,10 +120,17 @@ export default {
       return this.commands.filter(
         command => command.name === this.form.command
       )[0];
+    },
+    smartParams() {
+      let params = JSON.stringify(clone(this.form.params));
+      Object.entries(wildcards).forEach(wildcard => {
+        params = params.replace(`$${wildcard[0]}`, wildcard[1]);
+      });
+      if (this.web3.account) params = params.replace('$ME', this.web3.account);
+      return JSON.parse(params);
     }
   },
   methods: {
-    startCase,
     setContract(key) {
       this.form.command = undefined;
       this.form.params = [];
@@ -144,7 +142,8 @@ export default {
         query: {
           address: this.form.address,
           contract: key,
-          command: this.form.command
+          command: this.form.command,
+          params: undefined
         }
       });
     },
@@ -167,6 +166,19 @@ export default {
           address: this.form.address,
           contract: this.form.contract,
           command: key
+        }
+      });
+    },
+    setParams() {
+      const params = b64uEnc(JSON.stringify(this.form.params));
+      if (params === this.$route.query.params) return;
+      this.$router.push({
+        path: this.$router.currentRoute.path,
+        query: {
+          address: this.form.address,
+          contract: this.form.contract,
+          command: this.form.command,
+          params
         }
       });
     },

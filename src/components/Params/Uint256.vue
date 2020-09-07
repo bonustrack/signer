@@ -16,11 +16,15 @@
 
 <script>
 export default {
-  props: ['value', 'param'],
+  props: ['defaultValue', 'param'],
   data() {
     return {
       input: ''
     };
+  },
+  created() {
+    if (this.defaultValue) this.input = this.defaultValue;
+    this.$emit('input', this.input);
   }
 };
 </script>

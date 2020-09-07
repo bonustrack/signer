@@ -63,3 +63,11 @@ export function formatProposals(proposals) {
     ])
   );
 }
+
+const b64uLookup = { '/': '_', _: '/', '+': '-', '-': '+', '=': '.', '.': '=' };
+
+export const b64uEnc = str =>
+  btoa(str).replace(/(\+|\/|=)/g, m => b64uLookup[m]);
+
+export const b64uDec = str =>
+  atob(str.replace(/(-|_|\.)/g, m => b64uLookup[m]));

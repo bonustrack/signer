@@ -3,6 +3,7 @@
     <input
       v-model.trim="input"
       @input="$emit('input', input !== 'false')"
+      :placeholder="_startCase(param.name)"
       type="text"
       class="input width-full"
     />
@@ -14,11 +15,15 @@
 
 <script>
 export default {
-  props: ['value', 'param'],
+  props: ['defaultValue', 'param'],
   data() {
     return {
-      input: ''
+      input: true
     };
+  },
+  created() {
+    if (this.defaultValue) this.input = this.defaultValue;
+    this.$emit('input', this.input);
   }
 };
 </script>

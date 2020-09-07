@@ -17,7 +17,7 @@
 import { isAddress } from '@ethersproject/address';
 
 export default {
-  props: ['value', 'param'],
+  props: ['defaultValue', 'param'],
   data() {
     return {
       input: ''
@@ -27,6 +27,10 @@ export default {
     isValid() {
       return !this.input || isAddress(this.input);
     }
+  },
+  created() {
+    if (this.defaultValue) this.input = this.defaultValue;
+    this.$emit('input', this.input);
   }
 };
 </script>

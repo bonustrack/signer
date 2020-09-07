@@ -1,9 +1,10 @@
 <template>
   <div>
-    <p v-text="startCase(param.name)" />
+    <p v-text="_startCase(param.name)" />
     <Params
       v-for="(item, i) in input"
       :key="i"
+      :defaultValue="defaultValue[i]"
       :param="paramSingle"
       v-model="input[i]"
       @input="$emit('input', input)"
@@ -13,11 +14,10 @@
 </template>
 
 <script>
-import startCase from 'lodash/startCase';
 import { clone } from '@/helpers/utils';
 
 export default {
-  props: ['param'],
+  props: ['defaultValue', 'param'],
   data() {
     return {
       input: ['', '']
@@ -30,8 +30,9 @@ export default {
       return paramSingle;
     }
   },
-  methods: {
-    startCase
+  created() {
+    if (this.defaultValue) this.input = this.defaultValue;
+    this.$emit('input', this.input);
   }
 };
 </script>

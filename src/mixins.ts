@@ -1,6 +1,7 @@
 import { mapState } from 'vuex';
 import numeral from 'numeral';
 import prettyMs from 'pretty-ms';
+import startCase from 'lodash/startCase';
 import store from '@/store';
 import config from '@/helpers/config';
 import { shorten, etherscanLink } from '@/helpers/utils';
@@ -18,6 +19,9 @@ export default {
     ...mapState(modules)
   },
   methods: {
+    _startCase(str) {
+      return startCase(str);
+    },
     _ms(number) {
       const diff = number * 1e3 - new Date().getTime();
       return prettyMs(diff);
