@@ -196,11 +196,11 @@ export default {
         const overrides = {};
         const gasLimitNumber = await contractWithSigner.estimateGas[
           this.command.name
-        ](...this.form.params, overrides);
+        ](...this.smartParams, overrides);
         const gasLimit = gasLimitNumber.toNumber();
         overrides.gasLimit = Math.floor(gasLimit * 1.1);
         const tx = await contractWithSigner[this.command.name](
-          ...this.form.params,
+          ...this.smartParams,
           overrides
         );
         await tx.wait();
