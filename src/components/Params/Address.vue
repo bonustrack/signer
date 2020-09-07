@@ -16,7 +16,7 @@
 <script>
 import { isAddress } from '@ethersproject/address';
 
-const wildcards = ['$ME', '$DAI', '$WETH'];
+const wildcards = ['$ME', '$DAI', '$WETH', '$CRPFACTORY'];
 
 export default {
   props: ['defaultValue', 'param'],
